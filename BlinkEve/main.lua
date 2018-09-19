@@ -1,4 +1,4 @@
-local version = "1.0"
+local version = "1.1"
 
 local preds = module.internal("pred")
 local TS = module.internal("TS")
@@ -10,7 +10,11 @@ range = 800,
 width = 60, 
 speed = 2200, 
 delay = 0.25, 
-boundingRadiusMod = 0
+boundingRadiusMod = 0,
+collision = {
+		hero = true,
+		minion = true
+	}
 }
 
 local spellE = {
@@ -126,7 +130,7 @@ local function Combo()
    local target = GetTargetQ()
       if common.IsValidTarget(target) and target then
          local pos = preds.linear.get_prediction(spellQ, target)
-         if pos and player.pos:to2D():dist(pos.endPos) <= spellQ.range then
+         if pos and player.pos:to2D():dist(pos.endPos) <= spellQ.range and not preds.collision.get_prediction(spellQ, pos, target) then
             player:castSpell("pos", 0, vec3(pos.endPos.x, mousePos.y, pos.endPos.y))
          end
       end
