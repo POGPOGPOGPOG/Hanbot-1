@@ -1,6 +1,6 @@
 return {
   id = "BlinkEve",
-  name = "Evelynn",
+  name = "BlinkEve",
   riot = true,
   flag = {
     text = "Evelynn by dontblink",
