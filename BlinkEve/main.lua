@@ -1,4 +1,4 @@
-
+local version = "1.0"
 
 local preds = module.internal("pred")
 local TS = module.internal("TS")
@@ -13,9 +13,8 @@ delay = 0.25,
 boundingRadiusMod = 0
 }
 
-
 local spellE = {
-range = 210
+range = 285
 }
 
 local spellR = {
@@ -27,7 +26,7 @@ boundingRadiusMod = 0,
 }
 
 
-local menu = menu("BlinkEve", "Evelynn By dontblink")
+local menu = menu("dontblink", "BlinkEve")
 menu:menu("c", "Combo")
 menu.c:boolean("rcombo", "Use R in Combo", true)
 
@@ -53,7 +52,7 @@ menu.draws:color("colore", "  ^- Color", 255, 255, 255, 255)
 menu:menu("keys", "Key Settings")
 menu.keys:keybind("combokey", "Combo Key", "Space", nil)
 menu.keys:keybind("harasskey", "Harass Key", "C", nil)
-menu.keys:keybind("clearkey", "Lane Clear Key", "V", nil)
+menu.keys:keybind("clearkey", "Clear Key", "V", nil)
 menu.keys:keybind("lastkey", "Last Hit", "X", nil)
 
 TS.load_to_menu(menu)
@@ -123,6 +122,7 @@ end
 
 
 local function Combo()
+	--TODO: add collision for Q, maybe W usage idk
    local target = GetTargetQ()
       if common.IsValidTarget(target) and target then
          local pos = preds.linear.get_prediction(spellQ, target)
@@ -152,7 +152,7 @@ local function JungleClear()
 	if menu.jc.qclear:get() and player:spellSlot(0).state == 0 then
 		for i = 0, objManager.minions.size[TEAM_NEUTRAL] - 1 do
 			local minion = objManager.minions[TEAM_NEUTRAL][i]
-			if minion and minion.isVisible and minion.isTargetable and not minion.isDead then
+			if minion and not minion.isDead and minion.isVisible and minion.isTargetable and minion.baseAttackDamage > 5 then
 				if minion.pos:dist(player.pos) < spellQ.range then
 					player:castSpell("obj", 0, minion)
 				end
@@ -163,10 +163,7 @@ local function JungleClear()
 	if menu.jc.eclear:get() and player:spellSlot(2).state == 0 then
 		for i = 0, objManager.minions.size[TEAM_NEUTRAL] - 1 do
 			local minion = objManager.minions[TEAM_NEUTRAL][i]
-			if
-				minion and minion.isVisible and minion.isTargetable and not minion.isDead and
-					minion.pos:dist(player.pos) < spellE.range
-			 then
+			if minion and minion.isVisible and minion.isTargetable and not minion.isDead and minion.pos:dist(player.pos) < spellE.range then
 				player:castSpell("obj", 2, minion)
 			end
 		end
@@ -195,8 +192,23 @@ local function OnDraw()
     if menu.draws.drawq:get() then
 	   graphics.draw_circle(player.pos, spellQ.range, 2, menu.draws.colorq:get(), 50)
 	end
+	--TODO: change this meme
 	if menu.draws.draww:get() then
-	   graphics.draw_circle(player.pos, 1200, 2, menu.draws.colorw:get(), 50)
+	   if player:spellSlot(1).level == 1 then	
+		  graphics.draw_circle(player.pos, 1200, 2, menu.draws.colorw:get(), 50)
+	   end
+	   if player:spellSlot(1).level == 2 then	
+		   graphics.draw_circle(player.pos, 1300, 2, menu.draws.colorw:get(), 50)
+		 end
+	    if player:spellSlot(1).level == 3 then	
+		   graphics.draw_circle(player.pos, 1400, 2, menu.draws.colorw:get(), 50)
+	    end
+	    if player:spellSlot(1).level == 4 then	
+		   graphics.draw_circle(player.pos, 1500, 2, menu.draws.colorw:get(), 50)
+		end
+	    if player:spellSlot(1).level == 5 then	
+		   graphics.draw_circle(player.pos, 1600, 2, menu.draws.colorw:get(), 50)
+		end		
 	end
 	if menu.draws.drawe:get() then
 	   graphics.draw_circle(player.pos, spellE.range, 2, menu.draws.colore:get(), 50)
@@ -211,6 +223,9 @@ local function OnTick()
 	end
 	if menu.keys.combokey:get() then
 		Combo()
+	end
+	if menu.keys.clearkey:get() then
+		JungleClear()
 	end
 end
 
