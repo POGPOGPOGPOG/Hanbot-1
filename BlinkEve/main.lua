@@ -42,9 +42,6 @@ menu:menu("jc", "Jungle Clear")
 menu.jc:boolean("qclear", "Use Q in Jungle Clear", true)
 menu.jc:boolean("eclear", "Use E in Jungle Clear", true)
 
---[[menu:menu("ks", "KillSteal")
-menu.ks:boolean("qks", "Use Q to KillSteal", true)]]
-
 menu:menu("draws", "Draw Settings")
 menu.draws:boolean("drawq", "Draw Q Range", true)
 menu.draws:color("colorq", "  ^- Color", 255, 255, 255, 255)
@@ -97,6 +94,15 @@ local GetTargetE = function()
 	return TS.get_result(TargetSelectionE).obj
 end
 
+local TargetSelectionW = function(res, obj, dist)
+	if dist <= player:spellSlot(1).level * 100 + 1100 then
+		res.obj = obj
+		return true
+	end
+end
+local GetTargetW = function()
+	return TS.get_result(TargetSelectionW).obj
+end
 
 local function count_enemies_in_range(pos, range)
 	local enemies_in_range = {}
@@ -126,13 +132,25 @@ end
 
 
 local function Combo()
-	--TODO: add collision for Q, maybe W usage idk
+	--TODO: improve W usage
+   local target = GetTargetW()
+   if common.IsValidTarget(target) and target then
+      if(target.pos:dist(player) <= player:spellSlot(1).level * 100 + 1100) then
+         player:castSpell("obj", 1, target)
+      end
+   end
    local target = GetTargetQ()
       if common.IsValidTarget(target) and target then
          local pos = preds.linear.get_prediction(spellQ, target)
-         if pos and player.pos:to2D():dist(pos.endPos) <= spellQ.range and not preds.collision.get_prediction(spellQ, pos, target) then
-            player:castSpell("pos", 0, vec3(pos.endPos.x, mousePos.y, pos.endPos.y))
-         end
+		 if player:spellSlot(0).name == "EvelynnQ" then
+            if pos and player.pos:to2D():dist(pos.endPos) <= spellQ.range and not preds.collision.get_prediction(spellQ, pos, target) then
+               player:castSpell("pos", 0, vec3(pos.endPos.x, mousePos.y, pos.endPos.y))
+            end
+		 else
+		    if pos and player.pos:to2D():dist(pos.endPos) <= spellQ.range then
+		       player:castSpell("pos", 0, vec3(pos.endPos.x, mousePos.y, pos.endPos.y))
+			end
+		 end
       end
    local target = GetTargetE()
    if common.IsValidTarget(target) and target then
@@ -173,7 +191,26 @@ local function JungleClear()
 		end
 	end
 
-	
+   if player:spellSlot(0).state == 0 then
+      local enemyMinionsQ = common.GetMinionsInRange(spellQ.range, TEAM_ENEMY)
+      for i = 0, objManager.minions.size[TEAM_ENEMY] - 1 do
+         local minion = objManager.minions[TEAM_ENEMY][i]
+         if minion and not minion.isDead and common.IsValidTarget(minion) then
+            local minion = objManager.minions[TEAM_ENEMY][i]
+		    if minion and minion.pos:dist(player.pos) <= spellQ.range and not minion.isDead and common.IsValidTarget(minion) then
+		       local minionPos = vec3(minion.x, minion.y, minion.z)
+			   if minionPos then
+			      local seg = preds.linear.get_prediction(spellQ, minion)
+					 if seg and seg.startPos:dist(seg.endPos) < spellQ.range then
+					    player:castSpell("pos", 0, vec3(seg.endPos.x, minionPos.y, seg.endPos.y))
+					 end
+			   end
+			end
+         end
+
+        
+   end
+end	
 	
 end
 
@@ -196,8 +233,11 @@ local function OnDraw()
     if menu.draws.drawq:get() then
 	   graphics.draw_circle(player.pos, spellQ.range, 2, menu.draws.colorq:get(), 50)
 	end
-	--TODO: change this meme
+	--TODO: test this
 	if menu.draws.draww:get() then
+	   graphics.draw_circle(player.pos, player:spellSlot(1).level * 100 + 1100, 2, menu.draws.colorw:get(), 50)
+	end
+	--[[if menu.draws.draww:get() then
 	   if player:spellSlot(1).level == 1 then	
 		  graphics.draw_circle(player.pos, 1200, 2, menu.draws.colorw:get(), 50)
 	   end
@@ -213,7 +253,7 @@ local function OnDraw()
 	    if player:spellSlot(1).level == 5 then	
 		   graphics.draw_circle(player.pos, 1600, 2, menu.draws.colorw:get(), 50)
 		end		
-	end
+	end]]
 	if menu.draws.drawe:get() then
 	   graphics.draw_circle(player.pos, spellE.range, 2, menu.draws.colore:get(), 50)
 	end
