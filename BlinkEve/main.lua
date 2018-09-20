@@ -1,4 +1,4 @@
-local version = "1.1"
+local version = "1.2"
 
 local preds = module.internal("pred")
 local TS = module.internal("TS")
@@ -33,6 +33,7 @@ boundingRadiusMod = 0,
 local menu = menu("dontblink", "BlinkEve")
 menu:menu("c", "Combo")
 menu.c:boolean("rcombo", "Use R in Combo", true)
+menu.c:boolean("wcombo", "Use W in Combo", true)
 
 menu:menu("h", "Harass")
 menu.h:boolean("qharass", "Use Q in Harass", true)
@@ -133,10 +134,12 @@ end
 
 local function Combo()
 	--TODO: improve W usage
-   local target = GetTargetW()
-   if common.IsValidTarget(target) and target then
-      if(target.pos:dist(player) <= player:spellSlot(1).level * 100 + 1100) then
-         player:castSpell("obj", 1, target)
+   if menu.c.wcombo:get() then
+      local target = GetTargetW()
+      if common.IsValidTarget(target) and target then
+         if(target.pos:dist(player) <= player:spellSlot(1).level * 100 + 1100) then
+            player:castSpell("obj", 1, target)
+         end
       end
    end
    local target = GetTargetQ()
